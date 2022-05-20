@@ -79,6 +79,14 @@ bool checkIfVisited(State state) {
     return false;
 }
 
+int returnVisitedArrIndex(State state) {
+    for(int i = 0; i < visited_states.size(); i++){
+        if(isIdentical(state.configuration, visited_states[i].configuration)){
+            return i;
+        }
+    }
+}
+
 int getManhattanDistance(vector< vector<int> > conf1, vector< vector<int> > conf2){
     int manhattan_distance = 0;
     int x1, y1, x2, y2;
@@ -256,6 +264,7 @@ void play(){
             // cout << "------------------------" << endl;
             State child = child_states[j];
             vector<vector<int> > child_conf = child.configuration;
+            
             if(checkIfVisited(child)){ //calculate h with rta*
                 int hL;
                 vector<State> child_states_of_child = getChildStates(child);
@@ -263,7 +272,13 @@ void play(){
                 for(int k = 0; k < int(child_states_of_child.size()); k++){
                     State child_of_child = child_states_of_child[k];
                     vector<vector<int> > child_of_child_conf = child_of_child.configuration;
-                    int h = getManhattanDistance(child_of_child_conf, goal_configuration);
+                    int h;
+                    if(checkIfVisited(child_of_child)){
+                        h = child_of_child.hG;
+                    } else {
+                        h = getManhattanDistance(child_of_child_conf, goal_configuration);
+                    }
+                    cout << "h" << k << ": " << h << endl;
                     heuristic_array_of_childs.push_back(h);
                 }
                 
@@ -297,14 +312,11 @@ void play(){
                 if(best == temp_min){
                     hL = 1000;
                 } else hL = temp_min;
-                // cout << "created with: " << char(child.createdWith) << endl;
-                // cout << "hL: " << hL << endl;
+                
                 heuristics.push_back(hL);
                 isVisibleForHeuristics.push_back(1);
             } else { // calculate h with lrta*
                 int hG = getManhattanDistance(child_conf, goal_configuration);
-                // cout << "created with: " << char(child.createdWith) << endl;
-                // cout << "hG: " << hG << endl;
                 heuristics.push_back(hG);
                 isVisibleForHeuristics.push_back(0);
             }
@@ -337,6 +349,7 @@ void play(){
             agent_state.hG = min;
             agents[i].current_state = child_states[min_child_index];
             agents[i].last_move = child_states[min_child_index].createdWith;
+            
         }
         if(isIdentical(child_states[min_child_index].configuration, goal_configuration)){
             goal_reached = true;
